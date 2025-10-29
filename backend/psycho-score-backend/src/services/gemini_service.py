@@ -114,7 +114,112 @@ class GeminiService:
                 status_code=500, detail=f"Error analyzing business card: {str(e)}"
             )
 
-    def _create_fallback_analysis(self, raw_response: str) -> BusinessCardAnalysis:
+    def _create_comparison_prompt(self) -> str:
+        """Create the Patrick Bateman comparison prompt for two business cards"""
+        return """
+        You are Patrick Bateman from American Psycho. Two business cards have been presented to you for a COMPETITIVE ANALYSIS.
+
+        You must analyze both cards with your obsessive attention to detail and determine which one is superior. This is a BATTLE of sophistication, taste, and professional excellence.
+
+        Analyze both cards focusing on:
+        - Typography and font sophistication 
+        - Color scheme elegance and restraint
+        - Layout composition and balance
+        - Paper quality perception
+        - Overall aesthetic superiority
+        - Attention to design details
+
+        Write your response as Patrick Bateman would speak during a heated business card comparison scene - competitive, obsessive, and increasingly unhinged as you dissect every detail.
+
+        After your analysis, you MUST declare one card as "ALPHA" (superior) and the other as "BETA" (inferior).
+
+        Provide your response in JSON format:
+        {
+            "card1_analysis": {
+                "strengths": "What makes this card impressive",
+                "weaknesses": "What disappoints you about this card", 
+                "psycho_score": 7.2
+            },
+            "card2_analysis": {
+                "strengths": "What makes this card impressive",
+                "weaknesses": "What disappoints you about this card",
+                "psycho_score": 8.1
+            },
+            "comparison_critique": "Your full Patrick Bateman comparison in his voice - be dramatic, competitive, and unhinged (3-4 paragraphs)",
+            "winner": "ALPHA",
+            "winner_reasoning": "Why this card dominates the other",
+            "final_verdict": "ALPHA"
+        }
+
+        The winner and final_verdict should be either "ALPHA" (for the first/original card) or "BETA" (for the second/contender card).
+        Psycho_scores should be 0-10, where 10 is impossible perfection.
+        DO NOT FORMAT YOUR RESPONSE, ONLY GENERATE PLAIN TEXT without bold or markdown.
+        """
+
+    async def compare_business_cards(
+        self, original_image: UploadFile, contender_image: UploadFile
+    ) -> dict:
+        """Compare two business cards and determine ALPHA vs BETA"""
+        try:
+            # Process both images
+            original_pil = self._process_image(original_image)
+            contender_pil = self._process_image(contender_image)
+
+            # Create the comparison prompt
+            prompt = self._create_comparison_prompt()
+
+            # Generate content with Gemini using both images
+            response = self.model.generate_content(
+                [
+                    "ORIGINAL CARD (Judge this as Card 1):",
+                    original_pil,
+                    "CONTENDER CARD (Judge this as Card 2):",
+                    contender_pil,
+                    prompt,
+                ]
+            )
+
+            # Parse the JSON response
+            try:
+                response_text = response.text
+                # Remove any markdown formatting
+                if "```json" in response_text:
+                    response_text = response_text.split("```json")[1].split("```")[0]
+                elif "```" in response_text:
+                    response_text = response_text.split("```")[1].split("```")[0]
+
+                comparison_data = json.loads(response_text.strip())
+                return comparison_data
+
+            except json.JSONDecodeError:
+                # Fallback comparison if JSON parsing fails
+                return self._create_fallback_comparison(response.text)
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Error comparing business cards: {str(e)}"
+            )
+
+    def _create_fallback_comparison(self, raw_response: str) -> dict:
+        """Create a fallback comparison if JSON parsing fails"""
+        return {
+            "card1_analysis": {
+                "strengths": "Professional presentation detected",
+                "weaknesses": "Standard execution",
+                "psycho_score": 6.5,
+            },
+            "card2_analysis": {
+                "strengths": "Competent design approach",
+                "weaknesses": "Lacks distinctive edge",
+                "psycho_score": 6.8,
+            },
+            "comparison_critique": raw_response[:800]
+            if raw_response
+            else "The comparison reveals subtle differences in execution. While both cards demonstrate professional competence, one shows marginally superior attention to detail and aesthetic refinement.",
+            "winner": "BETA",
+            "winner_reasoning": "Slight edge in overall composition and sophistication",
+            "final_verdict": "BETA",
+        }
         """Create a fallback analysis if JSON parsing fails"""
         return BusinessCardAnalysis(
             card_quality="Analysis completed with standard processing",

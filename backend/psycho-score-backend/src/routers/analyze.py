@@ -65,6 +65,75 @@ async def quick_business_card_analysis(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
+@router.post("/alpha-vs-beta")
+async def alpha_vs_beta_battle(
+    original: UploadFile = File(..., description="The original business card"),
+    contender: UploadFile = File(..., description="The contender's business card"),
+):
+    """
+    🥊 ALPHA VS BETA BATTLE - Patrick Bateman decides who dominates!
+
+    Upload two business cards for a competitive analysis:
+    1. Original card (your baseline)
+    2. Contender card (the challenger)
+
+    Patrick will analyze both and declare one as ALPHA (superior) or BETA (inferior)
+    with a dramatic audio announcement of the verdict!
+    """
+    try:
+        # Step 1: Validate both uploaded images
+        image_processor.validate_image(original)
+        image_processor.validate_image(contender)
+
+        # Step 2: Send both cards to Gemini for competitive analysis
+        comparison = await gemini_service.compare_business_cards(original, contender)
+
+        # Step 3: Determine the verdict and create announcement
+        verdict = comparison.get("final_verdict", "BETA")
+        winner_reasoning = comparison.get(
+            "winner_reasoning", "Superior design execution"
+        )
+
+        # Create dramatic announcement text
+        if verdict == "ALPHA":
+            announcement_text = f"ALPHA! The challenger card dominates with superior sophistication. {winner_reasoning}"
+        else:
+            announcement_text = f"BETA! The challenger card has been defeated by inferior execution. {winner_reasoning}"
+
+        # Step 4: Generate audio announcement with your custom voice
+        audio_response = await elevenlabs_service.generate_audio(
+            text=announcement_text,
+            voice_id=None,  # Uses your custom voice from settings
+        )
+
+        # Step 5: Return complete battle results
+        return {
+            "battle_result": {
+                "verdict": verdict,
+                "winner": "original" if verdict == "ALPHA" else "contender",
+                "announcement": announcement_text,
+                "audio_url": audio_response.audio_url,
+            },
+            "detailed_analysis": {
+                "original_card": comparison.get("card1_analysis", {}),
+                "contender_card": comparison.get("card2_analysis", {}),
+                "patrick_comparison": comparison.get("comparison_critique", ""),
+                "winner_reasoning": winner_reasoning,
+            },
+            "scores": {
+                "original_score": comparison.get("card1_analysis", {}).get(
+                    "psycho_score", 0
+                ),
+                "contender_score": comparison.get("card2_analysis", {}).get(
+                    "psycho_score", 0
+                ),
+            },
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Battle analysis error: {str(e)}")
+
+
 @router.get("/health")
 async def health_check():
     """Health check endpoint"""
