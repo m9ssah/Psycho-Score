@@ -5,7 +5,7 @@ import './ComparePage.css';
 export default function ComparePage() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const card1 = location.state?.cardData;
   const [card2, setCard2] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -36,7 +36,7 @@ export default function ComparePage() {
       }
 
       const data = await response.json();
-      
+
       // Store the FULL analysis data for card2
       setCard2({
         cardImage: data.cardImage || URL.createObjectURL(file),
@@ -125,12 +125,12 @@ export default function ComparePage() {
           {/* Left Side - Your Card (The Challenger) */}
           <div className="card-column">
             <h2 className="card-column-title">Your Card</h2>
-            
+
             <div className="card-display-box">
               {card1.cardImage ? (
-                <img 
-                  src={card1.cardImage} 
-                  alt="Your Card" 
+                <img
+                  src={card1.cardImage}
+                  alt="Your Card"
                   className="comparison-card-image"
                 />
               ) : (
@@ -148,9 +148,9 @@ export default function ComparePage() {
                   <span className="score-max">/10</span>
                 </span>
               </div>
-              
+
               <h3 className="evaluation-verdict">{card1.card_quality}</h3>
-              
+
               <p className="evaluation-text">
                 {card1.patrick_critique.substring(0, 150)}...
               </p>
@@ -174,13 +174,13 @@ export default function ComparePage() {
           {/* Right Side - The Contender */}
           <div className="card-column contender">
             <h2 className="card-column-title">The Contender</h2>
-            
+
             {card2 ? (
               <>
                 <div className="card-display-box">
-                  <img 
-                    src={card2.cardImage} 
-                    alt="Contender Card" 
+                  <img
+                    src={card2.cardImage}
+                    alt="Contender Card"
                     className="comparison-card-image"
                   />
                 </div>
@@ -193,13 +193,13 @@ export default function ComparePage() {
                       <span className="score-max">/10</span>
                     </span>
                   </div>
-                  
+
                   <h3 className="evaluation-verdict">
-                    {card2.psycho_score > card1.psycho_score ? "Superior craftsmanship." : 
-                     card2.psycho_score === card1.psycho_score ? "Equally matched." : 
-                     "Falls short."}
+                    {card2.psycho_score > card1.psycho_score ? "Superior craftsmanship." :
+                      card2.psycho_score === card1.psycho_score ? "Equally matched." :
+                        "Falls short."}
                   </h3>
-                  
+
                   <p className="evaluation-text">
                     {card2.patrick_critique.substring(0, 150)}...
                   </p>
@@ -251,7 +251,7 @@ export default function ComparePage() {
 
         {/* Initiate Comparison Button */}
         <div className="comparison-action">
-          <button 
+          <button
             className="initiate-comparison-btn"
             onClick={handleInitiateComparison}
             disabled={!card1 || !card2}

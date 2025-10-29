@@ -259,6 +259,14 @@ export default function ResultsPage() {
               ANALYZE ANOTHER
             </button>
           </div>
+          <div className="action-buttons">
+            <button
+              className="btn-secondary"
+              onClick={() => navigate('/compare')}
+            >
+              COMPARE CARDS
+            </button>
+          </div>
         </div>
       </main>
     </div>
