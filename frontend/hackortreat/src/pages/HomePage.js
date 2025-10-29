@@ -45,13 +45,57 @@ export default function HomePage() {
     }
   };
 
-  const handleAnalyze = () => {
-    if (selectedFile) {
-      setIsAnalyzing(true);
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
+    setIsAnalyzing(true);
+
+    try {
+      // create FormData to send the image file
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      // call your FastAPI backend
+      const response = await fetch('http://localhost:8000/api/analyze/psycho-score', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend error:', errorText);
+        throw new Error(`Analysis failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Backend response:', data); 
+
+      // wait 3 seconds for the dramatic effect, then navigate
       setTimeout(() => {
         setIsAnalyzing(false);
-        navigate('/results', { state: { analysisData } });
+        
+        // navigate to results page with the analysis data from backend
+        navigate('/results', {
+          state: {
+            analysisData: {
+              cardImage: data.cardImage || URL.createObjectURL(selectedFile),
+              psycho_score: data.psycho_score,
+              card_quality: data.card_quality,
+              design_elements: data.design_elements,
+              typography: data.typography,
+              color_scheme: data.color_scheme,
+              layout_quality: data.layout_quality,
+              material_impression: data.material_impression,
+              patrick_critique: data.patrick_critique
+            }
+          }
+        });
       }, 3000);
+
+    } catch (error) {
+      console.error('Error analyzing card:', error);
+      setIsAnalyzing(false);
+      alert('Failed to analyze card. Please try again.');
     }
   };
 
