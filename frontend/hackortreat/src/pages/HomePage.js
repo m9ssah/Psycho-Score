@@ -5,7 +5,7 @@ import batemanEyes from '../assets/bateman-eyes.jpg';
 
 // TODO: replace with real input
 const analysisData = { 
-  psycho_score: 4.5, 
+  psycho_score: 9, 
   cardImage: '', 
   typography: {}, 
   color_scheme: {},

@@ -110,12 +110,12 @@ export default function AlphaPage() {
 
         {/* Action Buttons */}
         <div className="alpha-actions">
-          <button className="alpha-btn primary" onClick={handleViewLeaderboard}>
+          {/*<button className="alpha-btn primary" onClick={handleViewLeaderboard}>
             <span className="btn-shine"></span>
             VIEW LEADERBOARD
-          </button>
+          </button> */}
           <button className="alpha-btn secondary" onClick={handleAnalyzeAnother}>
-            ANALYZE ANOTHER
+            RETURN HOME
           </button>
         </div>
 

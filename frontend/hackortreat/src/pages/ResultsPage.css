@@ -220,7 +220,7 @@
   }
   
   .btn-secondary:hover {
-    background-color: #f5f5f5;
+    background-color: #a41e32;
   }
   
   .btn-primary {
@@ -267,3 +267,36 @@
       width: 100%;
     }
   }
+
+/* Patrick Bateman Reaction Image */
+.bateman-image-container {
+  text-align: center;
+  margin: 40px 0;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.bateman-reaction-image {
+  max-width: 400px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border: 3px solid #d4d4d4;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .bateman-reaction-image {
+    max-width: 100%;
+  }
+}
