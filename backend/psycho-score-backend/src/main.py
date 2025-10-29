@@ -1,15 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from http import HTTPStatus
 import os
-from routers import analyze, audio
-from config.settings import settings
-from fastapi import UploadFile, File
 from PIL import Image
 import io
 import base64
 
+# Import your existing routers and services
+from routers import analyze, audio
+from config.settings import settings
+from services.gemini_service import gemini_service  # YOUR GEMINI SERVICE
 
 # Create FastAPI app with American Psycho themed metadata
 app = FastAPI(
@@ -19,7 +21,6 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
-
 
 # Add startup event to verify routes
 @app.on_event("startup")
@@ -32,11 +33,10 @@ async def startup_event():
         )
     print("API is ready for business card analysis!")
 
-
 # Configure CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["http://localhost:3000", "http://localhost"],  # Your React app
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -59,58 +59,17 @@ app.mount("/images", StaticFiles(directory=settings.IMAGE_UPLOAD_PATH), name="im
 
 @app.get("/", response_class=HTMLResponse)
 def root():
-    """
-    Patrick Bateman themed welcome message
-    """
-    html_content = """<!DOCTYPE html>"""
+    """Patrick Bateman themed welcome message"""
+    html_content = """<!DOCTYPE html>
+    <html>
+    <head><title>Psycho Score API</title></head>
+    <body>
+        <h1>🎭 Psycho Score API</h1>
+        <p>Patrick Bateman's Business Card Analysis Service</p>
+        <a href="/docs">API Documentation</a>
+    </body>
+    </html>"""
     return HTMLResponse(content=html_content)
-
-@app.post("/api/analyze/quick-analysis")
-async def quick_analysis(file: UploadFile = File(...)):
-    """
-    Quick business card analysis endpoint
-    Upload a business card image and get Patrick Bateman's critique
-    """
-    try:
-        # Read the uploaded file
-        contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
-        
-        # Convert image to base64 for returning
-        buffered = io.BytesIO()
-        image.save(buffered, format="JPEG")
-        img_base64 = base64.b64encode(buffered.getvalue()).decode()
-        
-        # TODO: Replace this mock data with actual Gemini API call
-        # For now, returning mock data that matches your frontend expectations
-        analysis_result = {
-            "psycho_score": 8.5,
-            "card_quality": "Impressive. Very nice.",
-            "design_elements": {
-                "layout": "The layout demonstrates a refined sense of balance and proportion.",
-                "whitespace": "Strategic use of negative space creates an air of sophistication.",
-                "composition": "The overall composition speaks of old money and quiet confidence."
-            },
-            "typography": {
-                "font_family": "The choice of typeface whispers rather than shouts. Garamond, perhaps? Acceptable.",
-                "hierarchy": "Clear typographic hierarchy guides the eye with surgical precision.",
-                "readability": "Legibility is maintained without sacrificing aesthetic appeal."
-            },
-            "color_scheme": {
-                "palette": "That subtle off-white coloring. Bone, possibly. Not quite eggshell.",
-                "contrast": "The contrast is tasteful. Not too aggressive, yet commanding attention.",
-                "sophistication": "A palette that speaks of restraint and cultivation."
-            },
-            "layout_quality": "The spacing is precise. Clinical, even. Every element has its place.",
-            "material_impression": "This feels like quality stock. A satisfying heft. One could almost hear the *thwack* it would make on a boardroom table.",
-            "patrick_critique": "The subtle off-white coloring. The tasteful thickness of it. Oh my God, it even has a watermark. The choice of font demonstrates both confidence and restraint. The composition is meticulous - almost obsessive in its attention to detail. This is a card that could get you a reservation at Dorsia. The material quality suggests permanence, authority. However, let's see how it compares to Paul Allen's card.",
-            "cardImage": f"data:image/jpeg;base64,{img_base64}"
-        }
-        
-        return analysis_result
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @app.get("/health")
@@ -129,6 +88,58 @@ async def health_check():
             "docs": "/docs",
         },
     }
+
+
+# DIRECT ENDPOINT WITH REAL GEMINI INTEGRATION
+@app.post("/api/analyze/psycho-score")
+async def quick_analysis_endpoint(file: UploadFile = File(...)):
+    """
+    Quick business card analysis using Gemini AI
+    Accept image file, analyze with Gemini, return Patrick's critique
+    """
+    try:
+        # Read the uploaded file
+        content = await file.read()
+        
+        # Validate it's an image
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(
+                status_code=400, 
+                detail="Only image files are supported"
+            )
+        
+        # Open image for base64 encoding
+        image = Image.open(io.BytesIO(content))
+        
+        # Convert image to base64 for returning to frontend
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        # Reset file pointer for Gemini service
+        file.file = io.BytesIO(content)
+        
+        # CALL YOUR ACTUAL GEMINI SERVICE
+        analysis = await gemini_service.analyze_business_card(file)
+        
+        # Convert Pydantic model to dict and add the card image
+        analysis_dict = analysis.dict()
+        analysis_dict["cardImage"] = f"data:image/jpeg;base64,{img_base64}"
+        
+        # Return JSONResponse with explicit status code
+        return JSONResponse(
+            content=analysis_dict,
+            status_code=HTTPStatus.OK  # 200
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error processing image: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Analysis failed: {str(e)}"
+        )
 
 
 @app.get("/api")
