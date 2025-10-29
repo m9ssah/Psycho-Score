@@ -5,6 +5,11 @@ from fastapi.responses import HTMLResponse
 import os
 from routers import analyze, audio
 from config.settings import settings
+from fastapi import UploadFile, File
+from PIL import Image
+import io
+import base64
+
 
 # Create FastAPI app with American Psycho themed metadata
 app = FastAPI(
@@ -59,6 +64,53 @@ def root():
     """
     html_content = """<!DOCTYPE html>"""
     return HTMLResponse(content=html_content)
+
+@app.post("/api/analyze/quick-analysis")
+async def quick_analysis(file: UploadFile = File(...)):
+    """
+    Quick business card analysis endpoint
+    Upload a business card image and get Patrick Bateman's critique
+    """
+    try:
+        # Read the uploaded file
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        
+        # Convert image to base64 for returning
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        # TODO: Replace this mock data with actual Gemini API call
+        # For now, returning mock data that matches your frontend expectations
+        analysis_result = {
+            "psycho_score": 8.5,
+            "card_quality": "Impressive. Very nice.",
+            "design_elements": {
+                "layout": "The layout demonstrates a refined sense of balance and proportion.",
+                "whitespace": "Strategic use of negative space creates an air of sophistication.",
+                "composition": "The overall composition speaks of old money and quiet confidence."
+            },
+            "typography": {
+                "font_family": "The choice of typeface whispers rather than shouts. Garamond, perhaps? Acceptable.",
+                "hierarchy": "Clear typographic hierarchy guides the eye with surgical precision.",
+                "readability": "Legibility is maintained without sacrificing aesthetic appeal."
+            },
+            "color_scheme": {
+                "palette": "That subtle off-white coloring. Bone, possibly. Not quite eggshell.",
+                "contrast": "The contrast is tasteful. Not too aggressive, yet commanding attention.",
+                "sophistication": "A palette that speaks of restraint and cultivation."
+            },
+            "layout_quality": "The spacing is precise. Clinical, even. Every element has its place.",
+            "material_impression": "This feels like quality stock. A satisfying heft. One could almost hear the *thwack* it would make on a boardroom table.",
+            "patrick_critique": "The subtle off-white coloring. The tasteful thickness of it. Oh my God, it even has a watermark. The choice of font demonstrates both confidence and restraint. The composition is meticulous - almost obsessive in its attention to detail. This is a card that could get you a reservation at Dorsia. The material quality suggests permanence, authority. However, let's see how it compares to Paul Allen's card.",
+            "cardImage": f"data:image/jpeg;base64,{img_base64}"
+        }
+        
+        return analysis_result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @app.get("/health")
