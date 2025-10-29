@@ -11,7 +11,7 @@ class ImageProcessor:
     @staticmethod
     def validate_image(file: UploadFile) -> bool:
         """Validate uploaded image file"""
-        if not file.content_type not in settings.ALLOWED_IMAGE_TYPES:
+        if file.content_type not in settings.ALLOWED_IMAGE_TYPES:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid file type. Allowed types: {', '.join(settings.ALLOWED_IMAGE_TYPES)}",

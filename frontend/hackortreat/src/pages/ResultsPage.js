@@ -12,26 +12,55 @@ import batemanBad1 from '../assets/bateman-bad1.jpg';
 import batemanBad2 from '../assets/bateman-bad2.jpg';
 
 export default function ResultsPage() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const location = useLocation();
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [audioPlaying, setAudioPlaying] = useState(false);
 
   useEffect(() => {
     // Get the analysis data passed from the previous page
     if (location.state?.analysisData) {
       setAnalysisData(location.state.analysisData);
       setLoading(false);
+
+      // Auto-play audio if available
+      if (location.state.analysisData.audio_url) {
+        setTimeout(() => {
+          playPatrickAudio(location.state.analysisData.audio_url);
+        }, 1000); // Wait 1 second before playing audio
+      }
     } else {
       // If no data, redirect back to upload page
       navigate('/business-card');
     }
   }, [location, navigate]);
 
+  const playPatrickAudio = (audioUrl) => {
+    if (audioUrl) {
+      setAudioPlaying(true);
+      const audio = new Audio(`http://localhost:8000${audioUrl}`);
+
+      audio.onended = () => {
+        setAudioPlaying(false);
+      };
+
+      audio.onerror = () => {
+        console.error('Error playing audio');
+        setAudioPlaying(false);
+      };
+
+      audio.play().catch(error => {
+        console.error('Failed to play audio:', error);
+        setAudioPlaying(false);
+      });
+    }
+  };
+
   // Get score-based content (>7.5 good, 5-7.5 mid, <5 bad)
   const getScoreBasedContent = (score) => {
     let batemanImage;
-    
+
     // Select random bateman image based on score
     if (score >= 7.5) {
       const goodImages = [batemanGood1, batemanGood2, batemanGood3];
@@ -117,9 +146,9 @@ export default function ResultsPage() {
 
           {/* Patrick Bateman Image */}
           <div className="bateman-image-container">
-            <img 
-              src={scoreContent.batemanImage} 
-              alt="Patrick Bateman" 
+            <img
+              src={scoreContent.batemanImage}
+              alt="Patrick Bateman"
               className="bateman-reaction-image"
             />
           </div>
@@ -130,9 +159,9 @@ export default function ResultsPage() {
             <div className="left-column">
               <div className="card-preview">
                 {analysisData.cardImage ? (
-                  <img 
-                    src={analysisData.cardImage} 
-                    alt="Business Card" 
+                  <img
+                    src={analysisData.cardImage}
+                    alt="Business Card"
                     className="card-image"
                   />
                 ) : (
@@ -142,15 +171,15 @@ export default function ResultsPage() {
                 )}
               </div>
 
-              <div 
+              <div
                 className="score-section"
                 style={{ borderColor: scoreContent.borderColor }}
               >
-                <div 
+                <div
                   className="score-number"
                   style={{ color: scoreContent.scoreColor }}
                 >
-                  {analysisData.psycho_score}
+                  {analysisData.psycho_score || 0}
                 </div>
                 <div className="score-denominator">/ 10</div>
               </div>
@@ -165,27 +194,27 @@ export default function ResultsPage() {
               <div className="critique-item">
                 <h3 className="critique-title">CRITIQUE: TYPOGRAPHY</h3>
                 <p className="critique-text">
-                  <strong>Font Family:</strong> {analysisData.typography.font_family}<br />
-                  <strong>Hierarchy:</strong> {analysisData.typography.hierarchy}<br />
-                  <strong>Readability:</strong> {analysisData.typography.readability}
+                  <strong>Font Family:</strong> {analysisData.typography?.font_family || 'Not analyzed'}<br />
+                  <strong>Hierarchy:</strong> {analysisData.typography?.hierarchy || 'Not analyzed'}<br />
+                  <strong>Readability:</strong> {analysisData.typography?.readability || 'Not analyzed'}
                 </p>
               </div>
 
               <div className="critique-item">
                 <h3 className="critique-title">CRITIQUE: COLOR & MATERIAL</h3>
                 <p className="critique-text">
-                  <strong>Palette:</strong> {analysisData.color_scheme.palette}<br />
-                  <strong>Contrast:</strong> {analysisData.color_scheme.contrast}<br />
-                  <strong>Material:</strong> {analysisData.material_impression}
+                  <strong>Palette:</strong> {analysisData.color_scheme?.palette || 'Not analyzed'}<br />
+                  <strong>Contrast:</strong> {analysisData.color_scheme?.contrast || 'Not analyzed'}<br />
+                  <strong>Material:</strong> {analysisData.material_impression || 'Not analyzed'}
                 </p>
               </div>
 
               <div className="critique-item">
                 <h3 className="critique-title">CRITIQUE: LAYOUT & DESIGN</h3>
                 <p className="critique-text">
-                  <strong>Layout:</strong> {analysisData.design_elements.layout}<br />
-                  <strong>Whitespace:</strong> {analysisData.design_elements.whitespace}<br />
-                  <strong>Composition:</strong> {analysisData.design_elements.composition}
+                  <strong>Layout:</strong> {analysisData.design_elements?.layout || 'Not analyzed'}<br />
+                  <strong>Whitespace:</strong> {analysisData.design_elements?.whitespace || 'Not analyzed'}<br />
+                  <strong>Composition:</strong> {analysisData.design_elements?.composition || 'Not analyzed'}
                 </p>
               </div>
 
@@ -194,13 +223,36 @@ export default function ResultsPage() {
                 <p className="critique-text patrick-critique">
                   {analysisData.patrick_critique}
                 </p>
+
+                {/* Audio Player Section */}
+                {analysisData.audio_url && (
+                  <div className="audio-player-section">
+                    <button
+                      className={`audio-play-btn ${audioPlaying ? 'playing' : ''}`}
+                      onClick={() => playPatrickAudio(analysisData.audio_url)}
+                      disabled={audioPlaying}
+                    >
+                      {audioPlaying ? (
+                        <>
+                          <span className="audio-icon">🎵</span>
+                          Patrick is speaking...
+                        </>
+                      ) : (
+                        <>
+                          <span className="audio-icon">🎤</span>
+                          Hear Patrick's Voice
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="action-buttons">
-            <button 
+            <button
               className="btn-secondary"
               onClick={handleCompareAnother}
             >
