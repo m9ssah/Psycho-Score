@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './BusinessCardPage.css';
+import './HomePage.css';
 
-export default function BusinessCardPage() {
+export default function HomePage() {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
