@@ -16,9 +16,7 @@ class Settings(BaseSettings):
 
     # ElevenLabs configuration
     ELEVENLABS_BASE_URL: str = "https://api.elevenlabs.io/v1"
-    PATRICK_VOICE_ID: str = (
-        "pNInz6obpgDQGcFmaJgB"  # Default voice ID for Patrick Bateman-like voice
-    )
+    PATRICK_VOICE_ID: str
 
     # Application settings
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB

@@ -1,98 +1,70 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException, Form
-from fastapi.responses import JSONResponse
-import uuid
-import time
-from typing import Optional
+from fastapi import APIRouter, File, UploadFile, HTTPException
 from services.gemini_service import gemini_service
 from services.elevenlabs_service import elevenlabs_service
 from utils.image_processing import image_processor
-from models.schemas import (
-    AnalysisResponse,
-    BusinessCardAnalysis,
-    AudioResponse,
-    AnalysisRequest,
-    ErrorResponse,
-)
 
 router = APIRouter()
 
 
-@router.post(
-    "/business-card",
-    response_model=AnalysisResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
-async def analyze_business_card_complete(
-    file: UploadFile = File(..., description="Business card image file"),
-    include_audio: bool = Form(default=True, description="Generate audio critique"),
-    voice_id: Optional[str] = Form(
-        default=None, description="ElevenLabs voice ID override"
-    ),
-):
+@router.post("/psycho-score")
+async def psycho_score_analysis(file: UploadFile = File(...)):
     """
-    Complete business card analysis endpoint - analyzes image and optionally generates Patrick Bateman audio critique
-    """
-    start_time = time.time()
-    analysis_id = str(uuid.uuid4())
+    🎭 PSYCHO SCORE - The main endpoint that does exactly what you described:
 
+    1. User uploads business card image
+    2. Gemini analyzes shape, color, font, and details
+    3. Generates Patrick Bateman-style description
+    4. Sends to ElevenLabs for TTS in Patrick's voice
+    5. Returns complete result to user
+    """
     try:
-        # Validate image
+        # Step 1: Validate uploaded business card image
         image_processor.validate_image(file)
 
-        # Analyze business card with Gemini
+        # Step 2: Send to Gemini for analysis (shape, color, font, details)
         analysis = await gemini_service.analyze_business_card(file)
 
-        # Generate audio if requested
-        audio_response = None
-        if include_audio:
-            try:
-                audio_response = await elevenlabs_service.generate_audio(
-                    text=analysis.patrick_critique, voice_id=voice_id
-                )
-            except Exception as e:
-                # Don't fail the entire request if audio generation fails
-                print(f"Audio generation failed: {str(e)}")
-
-        processing_time = time.time() - start_time
-
-        return AnalysisResponse(
-            id=analysis_id,
-            analysis=analysis,
-            audio=audio_response,
-            processing_time=processing_time,
+        # Step 3: Take Patrick's description and send to ElevenLabs
+        audio_response = await elevenlabs_service.generate_audio(
+            text=analysis.patrick_critique
         )
 
-    except HTTPException:
-        raise
+        # Step 4: Return complete result to user
+        return {
+            "psycho_score": analysis.psycho_score,
+            "patrick_critique": analysis.patrick_critique,
+            "audio_url": audio_response.audio_url,
+            "analysis_details": {
+                "typography": analysis.typography,
+                "color_scheme": analysis.color_scheme,
+                "design_elements": analysis.design_elements,
+                "material_impression": analysis.material_impression,
+            },
+        }
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
-@router.post(
-    "/image-only",
-    response_model=BusinessCardAnalysis,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
-async def analyze_business_card_image_only(file: UploadFile = File(...)):
+@router.post("/quick-analysis")
+async def quick_business_card_analysis(file: UploadFile = File(...)):
     """
-    Image analysis only - no audio generation
+    Quick analysis without audio - just Patrick's written critique
     """
     try:
-        # Validate image
         image_processor.validate_image(file)
-
-        # Analyze business card with Gemini
         analysis = await gemini_service.analyze_business_card(file)
 
-        return analysis
+        return {
+            "psycho_score": analysis.psycho_score,
+            "patrick_critique": analysis.patrick_critique,
+        }
 
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 @router.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "Psycho Score Analysis API"}
+    return {"status": "healthy", "service": "Psycho Score API"}

@@ -15,6 +15,19 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
+# Add startup event to verify routes
+@app.on_event("startup")
+async def startup_event():
+    print("🎭 Psycho Score API starting up...")
+    print("Available routes:")
+    for route in app.routes:
+        print(
+            f"   {route.methods if hasattr(route, 'methods') else 'MOUNT'} {route.path}"
+        )
+    print("API is ready for business card analysis!")
+
+
 # Configure CORS for frontend
 app.add_middleware(
     CORSMiddleware,
@@ -25,22 +38,21 @@ app.add_middleware(
 )
 
 # Mount static file directories
-if os.path.exists(settings.AUDIO_OUTPUT_PATH):
-    app.mount("/audio", StaticFiles(directory=settings.AUDIO_OUTPUT_PATH), name="audio")
+os.makedirs(settings.AUDIO_OUTPUT_PATH, exist_ok=True)
+os.makedirs(settings.IMAGE_UPLOAD_PATH, exist_ok=True)
 
-if os.path.exists(settings.IMAGE_UPLOAD_PATH):
-    app.mount(
-        "/images", StaticFiles(directory=settings.IMAGE_UPLOAD_PATH), name="images"
-    )
-
-# Include routers
+# Include routers BEFORE mounting static files to avoid conflicts
 app.include_router(
     analyze.router, prefix="/api/analyze", tags=["Business Card Analysis"]
 )
 app.include_router(audio.router, prefix="/api/audio", tags=["Text-to-Speech"])
 
+# Mount static files after API routes
+app.mount("/audio", StaticFiles(directory=settings.AUDIO_OUTPUT_PATH), name="audio")
+app.mount("/images", StaticFiles(directory=settings.IMAGE_UPLOAD_PATH), name="images")
 
-@app.get("/", response_class=HTMLResponse)
+
+@app.get("/", response_class=HTMLResponse)  # DELETE THIS LATER
 def root():
     """
     Patrick Bateman themed welcome message
@@ -107,9 +119,12 @@ def root():
             </div>
             <p>Welcome to the most sophisticated business card analysis service ever created.</p>
             <div class="api-info">
-                <h3>Available Endpoints:</h3>
-                <p><strong>📊 Analysis:</strong> <a href="/api/analyze/business-card">/api/analyze/business-card</a></p>
-                <p><strong>🎵 Audio:</strong> <a href="/api/audio/generate">/api/audio/generate</a></p>
+                <h3>🎭 Main Endpoint:</h3>
+                <p><strong>POST /api/analyze/psycho-score</strong> - Upload business card → Get Patrick's critique + audio</p>
+                <br>
+                <h3>Other Endpoints:</h3>
+                <p><strong>📊 Quick Analysis:</strong> <a href="/api/analyze/quick-analysis">/api/analyze/quick-analysis</a></p>
+                <p><strong>🎵 Audio Only:</strong> <a href="/api/audio/generate">/api/audio/generate</a></p>
                 <p><strong>📖 Documentation:</strong> <a href="/docs">/docs</a></p>
             </div>
             <p><em>Where obsessive attention to detail meets cutting-edge AI technology.</em></p>
@@ -129,7 +144,8 @@ async def health_check():
         "version": "1.0.0",
         "patrick_says": "The sophistication of this API is... breathtaking.",
         "endpoints": {
-            "analysis": "/api/analyze/business-card",
+            "analysis": "/api/analyze/psycho-score",
+            "quick_analysis": "/api/analyze/quick-analysis",
             "audio": "/api/audio/generate",
             "docs": "/docs",
         },
@@ -150,10 +166,9 @@ async def api_info():
             "Detailed design assessment",
         ],
         "endpoints": {
-            "POST /api/analyze/business-card": "Complete business card analysis with optional audio",
-            "POST /api/analyze/image-only": "Image analysis without audio generation",
-            "POST /api/audio/generate": "Generate audio from text",
-            "POST /api/audio/patrick-critique": "Generate Patrick Bateman style audio critique",
-            "GET /api/audio/voices": "List available voices",
+            "POST /api/analyze/psycho-score": "🎭 Main endpoint: Upload business card → Get Patrick's analysis + audio",
+            "POST /api/analyze/quick-analysis": "⚡ Quick analysis without audio generation",
+            "POST /api/audio/generate": "🎵 Generate audio from text",
+            "GET /api/audio/voices": "🎤 List available voices",
         },
     }

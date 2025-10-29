@@ -55,21 +55,20 @@ src/
 
 🌐 API ENDPOINTS:
 
-POST /api/analyze/business-card
-- Complete analysis with optional audio generation
-- Returns detailed Patrick Bateman-style critique
-- Includes psycho score (0-10 rating)
+POST /api/analyze/psycho-score
+- 🎯 MAIN ENDPOINT: Upload business card → Get Patrick's critique + audio
+- This is the core functionality you requested:
+  1. User uploads business card image
+  2. Gemini analyzes shape, color, font, details
+  3. Generates Patrick Bateman description
+  4. Sends to ElevenLabs for TTS
+  5. Returns complete result
 
-POST /api/analyze/image-only
-- Fast image analysis without audio
-- For quick assessments
+POST /api/analyze/quick-analysis
+- Quick analysis without audio (just Patrick's written critique)
 
 POST /api/audio/generate
-- Custom text-to-speech generation
-- Configurable voice options
-
-GET /api/audio/voices
-- List available ElevenLabs voices
+- Generate audio from custom text
 
 GET /health
 - Service health check
