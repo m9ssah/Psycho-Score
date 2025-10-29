@@ -1,18 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './BetaPage.css';
+import psychoScoreAPI from '../services/api';
 
 export default function BetaPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  // Get battle result or regular card data
+  const battleResult = location.state?.battleResult;
   const yourCard = location.state?.yourCard;
   const opponentCard = location.state?.opponentCard;
 
   useEffect(() => {
     // Dramatic entrance animation
     setTimeout(() => setShowContent(true), 300);
+
+    // Auto-play defeat audio if available
+    if (battleResult?.audio_url) {
+      setTimeout(() => playDefeatAudio(), 1000);
+    }
   }, []);
+
+  const playDefeatAudio = () => {
+    if (!battleResult?.audio_url) return;
+
+    try {
+      const audioUrl = psychoScoreAPI.getAudioURL(battleResult.audio_url);
+      const audio = new Audio(audioUrl);
+
+      setIsPlayingAudio(true);
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => setIsPlayingAudio(false);
+
+      audio.play();
+    } catch (error) {
+      console.error('Failed to play defeat audio:', error);
+    }
+  };
 
   const handleTryAgain = () => {
     navigate('/compare');
@@ -59,10 +86,20 @@ export default function BetaPage() {
         <div className="beta-quote-section">
           <div className="quote-marks">"</div>
           <p className="beta-quote">
-            Look at that subtle off-white coloring. The tasteful thickness of it. 
-            Oh my God... it even has a watermark. Your card, however... needs work.
+            {battleResult ? battleResult.announcement : "Look at that subtle off-white coloring. The tasteful thickness of it. Oh my God... it even has a watermark. Your card, however... needs work."}
           </p>
           <div className="quote-marks">"</div>
+
+          {/* Audio Control for Battle Result */}
+          {battleResult?.audio_url && (
+            <button
+              className="defeat-audio-btn"
+              onClick={playDefeatAudio}
+              disabled={isPlayingAudio}
+            >
+              {isPlayingAudio ? '🔊 Playing Verdict...' : '🎤 Hear Patrick\'s Verdict'}
+            </button>
+          )}
         </div>
 
         {/* Reality Check */}
@@ -70,10 +107,10 @@ export default function BetaPage() {
           <div className="reality-border-top"></div>
           <h3 className="reality-title">THE REALITY</h3>
           <p className="reality-text">
-            In a world of alphas, you've revealed yourself to be... adequate. 
-            Your card lacks the je ne sais quoi that separates the powerful from the pedestrian. 
-            The material isn't quite Silian Rail. The font choice betrays uncertainty. 
-            The composition whispers of compromise rather than commands respect.
+            {battleResult ?
+              battleResult.patrick_comparison || battleResult.winner_reasoning :
+              "In a world of alphas, you've revealed yourself to be... adequate. Your card lacks the je ne sais quoi that separates the powerful from the pedestrian. The material isn't quite Silian Rail. The font choice betrays uncertainty. The composition whispers of compromise rather than commands respect."
+            }
           </p>
           <p className="reality-conclusion">
             Back to the drawing board. Excellence demands more.

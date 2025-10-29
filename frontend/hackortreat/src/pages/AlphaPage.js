@@ -1,17 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './AlphaPage.css';
+import psychoScoreAPI from '../services/api';
 
 export default function AlphaPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
-  const cardData = location.state?.cardData;
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  // Get battle result or regular card data
+  const battleResult = location.state?.battleResult;
+  const cardData = location.state?.yourCard || location.state?.cardData;
 
   useEffect(() => {
     // Dramatic entrance animation
     setTimeout(() => setShowContent(true), 300);
+
+    // Auto-play victory audio if available
+    if (battleResult?.audio_url) {
+      setTimeout(() => playVictoryAudio(), 1000);
+    }
   }, []);
+
+  const playVictoryAudio = () => {
+    if (!battleResult?.audio_url) return;
+
+    try {
+      const audioUrl = psychoScoreAPI.getAudioURL(battleResult.audio_url);
+      const audio = new Audio(audioUrl);
+
+      setIsPlayingAudio(true);
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => setIsPlayingAudio(false);
+
+      audio.play();
+    } catch (error) {
+      console.error('Failed to play victory audio:', error);
+    }
+  };
 
   const handleViewLeaderboard = () => {
     navigate('/leaderboard');
@@ -57,24 +84,35 @@ export default function AlphaPage() {
         <div className="alpha-quote-section">
           <div className="quote-marks">"</div>
           <p className="alpha-quote">
-            Impressive. Very nice. Let's see Paul Allen try to top this.
+            {battleResult ? battleResult.announcement : "Impressive. Very nice. Let's see Paul Allen try to top this."}
           </p>
           <div className="quote-marks">"</div>
+
+          {/* Audio Control for Battle Result */}
+          {battleResult?.audio_url && (
+            <button
+              className="victory-audio-btn"
+              onClick={playVictoryAudio}
+              disabled={isPlayingAudio}
+            >
+              {isPlayingAudio ? '🔊 Playing Victory...' : '🎤 Hear Patrick\'s Victory'}
+            </button>
+          )}
         </div>
 
         {/* Achievement Badges */}
         <div className="achievement-grid">
           <div className="achievement-badge">
             <div className="badge-icon">⚡</div>
-            <div className="badge-text">DORSIA<br/>APPROVED</div>
+            <div className="badge-text">DORSIA<br />APPROVED</div>
           </div>
           <div className="achievement-badge">
             <div className="badge-icon">💎</div>
-            <div className="badge-text">SILIAN RAIL<br/>CERTIFIED</div>
+            <div className="badge-text">SILIAN RAIL<br />CERTIFIED</div>
           </div>
           <div className="achievement-badge">
             <div className="badge-icon">🏆</div>
-            <div className="badge-text">TOP 1%<br/>ELITE</div>
+            <div className="badge-text">TOP 1%<br />ELITE</div>
           </div>
         </div>
 
@@ -82,9 +120,10 @@ export default function AlphaPage() {
         <div className="alpha-verdict">
           <div className="verdict-border-top"></div>
           <p className="verdict-text">
-            The tasteful thickness. The subtle coloring. The watermark. 
-            My God... it even has a raised lettering. This is a card that commands respect.
-            A card that opens doors. A card that gets you a reservation at Dorsia on a Friday night.
+            {battleResult ?
+              battleResult.patrick_comparison || battleResult.winner_reasoning :
+              "The tasteful thickness. The subtle coloring. The watermark. My God... it even has a raised lettering. This is a card that commands respect. A card that opens doors. A card that gets you a reservation at Dorsia on a Friday night."
+            }
           </p>
           <p className="verdict-signature">— Patrick Bateman</p>
           <div className="verdict-border-bottom"></div>

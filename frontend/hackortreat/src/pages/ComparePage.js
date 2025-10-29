@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './ComparePage.css';
+import psychoScoreAPI from '../services/api';
 
 export default function ComparePage() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const card1 = location.state?.cardData;
   const [card2, setCard2] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -23,33 +24,11 @@ export default function ComparePage() {
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // Use quick analysis for the second card
+      const data = await psychoScoreAPI.quickAnalysis(file);
 
-      const response = await fetch('http://localhost:8000/analyze-card', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Analysis failed');
-      }
-
-      const data = await response.json();
-      
-      // Store the FULL analysis data for card2
-      setCard2({
-        cardImage: data.cardImage || URL.createObjectURL(file),
-        psycho_score: data.psycho_score,
-        card_quality: data.card_quality,
-        design_elements: data.design_elements,
-        typography: data.typography,
-        color_scheme: data.color_scheme,
-        layout_quality: data.layout_quality,
-        material_impression: data.material_impression,
-        patrick_critique: data.patrick_critique
-      });
-
+      // Store the analysis data for card2
+      setCard2(data);
       setIsUploading(false);
     } catch (error) {
       console.error('Error analyzing card:', error);
@@ -68,40 +47,41 @@ export default function ComparePage() {
     navigate('/');
   };
 
-  const handleInitiateComparison = () => {
+  const handleInitiateComparison = async () => {
     if (!card1 || !card2) return;
 
-    // Compare the psycho_scores
-    const card1Score = card1.psycho_score;
-    const card2Score = card2.psycho_score;
+    try {
+      // Get the original files to send to battle API
+      const originalFile = await fetch(card1.cardImage).then(r => r.blob());
+      const contenderFile = await fetch(card2.cardImage).then(r => r.blob());
 
-    if (card1Score > card2Score) {
-      // Card 1 wins - YOU ARE ALPHA
-      navigate('/alpha', {
-        state: {
-          yourCard: card1,
-          opponentCard: card2,
-          winner: 'you'
-        }
-      });
-    } else if (card1Score < card2Score) {
-      // Card 2 wins - YOU ARE BETA
-      navigate('/beta', {
-        state: {
-          yourCard: card1,
-          opponentCard: card2,
-          winner: 'opponent'
-        }
-      });
-    } else {
-      // Tie - you can create a TiePage or just go to Alpha
-      navigate('/alpha', {
-        state: {
-          yourCard: card1,
-          opponentCard: card2,
-          winner: 'tie'
-        }
-      });
+      // Call the ALPHA vs BETA battle API
+      const battleResult = await psychoScoreAPI.battleAnalysis(originalFile, contenderFile);
+
+      if (battleResult.verdict === 'ALPHA') {
+        // Original card wins - YOU ARE ALPHA
+        navigate('/alpha', {
+          state: {
+            battleResult,
+            yourCard: card1,
+            opponentCard: card2,
+            winner: 'you'
+          }
+        });
+      } else {
+        // Contender wins - YOU ARE BETA
+        navigate('/beta', {
+          state: {
+            battleResult,
+            yourCard: card1,
+            opponentCard: card2,
+            winner: 'opponent'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Battle analysis failed:', error);
+      alert('Battle analysis failed. Please try again.');
     }
   };
 
@@ -125,12 +105,12 @@ export default function ComparePage() {
           {/* Left Side - Your Card (The Challenger) */}
           <div className="card-column">
             <h2 className="card-column-title">Your Card</h2>
-            
+
             <div className="card-display-box">
               {card1.cardImage ? (
-                <img 
-                  src={card1.cardImage} 
-                  alt="Your Card" 
+                <img
+                  src={card1.cardImage}
+                  alt="Your Card"
                   className="comparison-card-image"
                 />
               ) : (
@@ -148,9 +128,9 @@ export default function ComparePage() {
                   <span className="score-max">/10</span>
                 </span>
               </div>
-              
+
               <h3 className="evaluation-verdict">{card1.card_quality}</h3>
-              
+
               <p className="evaluation-text">
                 {card1.patrick_critique.substring(0, 150)}...
               </p>
@@ -174,13 +154,13 @@ export default function ComparePage() {
           {/* Right Side - The Contender */}
           <div className="card-column contender">
             <h2 className="card-column-title">The Contender</h2>
-            
+
             {card2 ? (
               <>
                 <div className="card-display-box">
-                  <img 
-                    src={card2.cardImage} 
-                    alt="Contender Card" 
+                  <img
+                    src={card2.cardImage}
+                    alt="Contender Card"
                     className="comparison-card-image"
                   />
                 </div>
@@ -193,13 +173,13 @@ export default function ComparePage() {
                       <span className="score-max">/10</span>
                     </span>
                   </div>
-                  
+
                   <h3 className="evaluation-verdict">
-                    {card2.psycho_score > card1.psycho_score ? "Superior craftsmanship." : 
-                     card2.psycho_score === card1.psycho_score ? "Equally matched." : 
-                     "Falls short."}
+                    {card2.psycho_score > card1.psycho_score ? "Superior craftsmanship." :
+                      card2.psycho_score === card1.psycho_score ? "Equally matched." :
+                        "Falls short."}
                   </h3>
-                  
+
                   <p className="evaluation-text">
                     {card2.patrick_critique.substring(0, 150)}...
                   </p>
@@ -251,7 +231,7 @@ export default function ComparePage() {
 
         {/* Initiate Comparison Button */}
         <div className="comparison-action">
-          <button 
+          <button
             className="initiate-comparison-btn"
             onClick={handleInitiateComparison}
             disabled={!card1 || !card2}

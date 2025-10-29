@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './ResultsPage.css';
 import { useNavigate, useLocation } from 'react-router-dom';
+import psychoScoreAPI from '../services/api';
 
 // Import bateman images
 import batemanGood1 from '../assets/bateman-good1.jpg';
@@ -12,10 +13,12 @@ import batemanBad1 from '../assets/bateman-bad1.jpg';
 import batemanBad2 from '../assets/bateman-bad2.jpg';
 
 export default function ResultsPage() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const location = useLocation();
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioError, setAudioError] = useState(null);
 
   useEffect(() => {
     // Get the analysis data passed from the previous page
@@ -31,7 +34,7 @@ export default function ResultsPage() {
   // Get score-based content (>7.5 good, 5-7.5 mid, <5 bad)
   const getScoreBasedContent = (score) => {
     let batemanImage;
-    
+
     // Select random bateman image based on score
     if (score >= 7.5) {
       const goodImages = [batemanGood1, batemanGood2, batemanGood3];
@@ -73,11 +76,37 @@ export default function ResultsPage() {
 
   const handleCompareAnother = () => {
     // Pass the FULL analysis data to compare page
-    navigate('/', {
+    navigate('/compare', {
       state: {
         cardData: analysisData // This includes all the fields from backend
       }
     });
+  };
+
+  const handlePlayAudio = () => {
+    if (!analysisData.audio_url) {
+      setAudioError('No audio available');
+      return;
+    }
+
+    try {
+      const audioUrl = psychoScoreAPI.getAudioURL(analysisData.audio_url);
+      const audio = new Audio(audioUrl);
+
+      setIsPlaying(true);
+      setAudioError(null);
+
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setAudioError('Failed to play audio');
+      };
+
+      audio.play();
+    } catch (error) {
+      setIsPlaying(false);
+      setAudioError('Failed to play audio');
+    }
   };
 
   const handleSubmitToLeaderboard = () => {
@@ -117,9 +146,9 @@ export default function ResultsPage() {
 
           {/* Patrick Bateman Image */}
           <div className="bateman-image-container">
-            <img 
-              src={scoreContent.batemanImage} 
-              alt="Patrick Bateman" 
+            <img
+              src={scoreContent.batemanImage}
+              alt="Patrick Bateman"
               className="bateman-reaction-image"
             />
           </div>
@@ -130,9 +159,9 @@ export default function ResultsPage() {
             <div className="left-column">
               <div className="card-preview">
                 {analysisData.cardImage ? (
-                  <img 
-                    src={analysisData.cardImage} 
-                    alt="Business Card" 
+                  <img
+                    src={analysisData.cardImage}
+                    alt="Business Card"
                     className="card-image"
                   />
                 ) : (
@@ -142,11 +171,11 @@ export default function ResultsPage() {
                 )}
               </div>
 
-              <div 
+              <div
                 className="score-section"
                 style={{ borderColor: scoreContent.borderColor }}
               >
-                <div 
+                <div
                   className="score-number"
                   style={{ color: scoreContent.scoreColor }}
                 >
@@ -194,15 +223,35 @@ export default function ResultsPage() {
                 <p className="critique-text patrick-critique">
                   {analysisData.patrick_critique}
                 </p>
+
+                {/* Audio Playback */}
+                {analysisData.audio_url && (
+                  <div className="audio-section">
+                    <button
+                      className="play-audio-btn"
+                      onClick={handlePlayAudio}
+                      disabled={isPlaying}
+                    >
+                      {isPlaying ? '🔊 Playing...' : '🎤 Hear Patrick\'s Critique'}
+                    </button>
+                    {audioError && <p className="audio-error">{audioError}</p>}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="action-buttons">
-            <button 
+            <button
               className="btn-secondary"
               onClick={handleCompareAnother}
+            >
+              COMPARE WITH ANOTHER
+            </button>
+            <button
+              className="btn-primary"
+              onClick={() => navigate('/')}
             >
               ANALYZE ANOTHER
             </button>
