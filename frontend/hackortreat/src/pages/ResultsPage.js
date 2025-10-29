@@ -158,18 +158,18 @@ export default function ResultsPage() {
             {/* Left Column - Card Image and Score */}
             <div className="left-column">
               <div className="card-preview">
-                {analysisData.cardImage ? (
-                  <img
-                    src={analysisData.cardImage}
-                    alt="Business Card"
-                    className="card-image"
-                  />
-                ) : (
-                  <div className="card-image-placeholder">
+                <div className="card-image-placeholder">  {/* ✅ Always wrap img */}
+                  {analysisData.cardImage ? (
+                    <img
+                      src={analysisData.cardImage}
+                      alt="Business Card"
+                    />
+                  ) : (
                     <div className="placeholder-text">BUSINESS CARD</div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+
 
               <div
                 className="score-section"
