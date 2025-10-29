@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import './BusinessCardPage.css';
+import { useNavigate } from 'react-router-dom';
+import './HomePage.css';
+import batemanEyes from '../assets/bateman-eyes.jpg';
 
-export default function BusinessCardPage() {
+export default function HomePage() {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const navigate = useNavigate();
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -35,11 +38,11 @@ export default function BusinessCardPage() {
   const handleAnalyze = () => {
     if (selectedFile) {
       setIsAnalyzing(true);
-      // Simulate analysis time
+      // Show analyzing modal for 3 seconds, then navigate to results
       setTimeout(() => {
         setIsAnalyzing(false);
-        alert(`Analysis complete for: ${selectedFile.name}`);
-      }, 3000); // Show for 3 seconds
+        navigate('/results');
+      }, 3000);
     }
   };
 
@@ -73,7 +76,8 @@ export default function BusinessCardPage() {
         <div className="title-section">
           <h2 className="main-title">Business Card Analysis</h2>
           <p className="subtitle">
-            Impressive. Very nice. Let's see Paul Allen's card. Upload a business card for a meticulous evaluation.
+            Is it the subtle off-white coloring? The tasteful thickness? Or perhaps... the watermark? Let's stop guessing. 
+            Use this Analyzer to determine your card's true, unassailable superiority. 
           </p>
         </div>
 
@@ -88,7 +92,7 @@ export default function BusinessCardPage() {
           <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
           </svg>
-          <h3 className="upload-title">Drag & Drop Your Card Here</h3>
+          <h3 className="upload-title">Drag & Drop Your Card Here...If You Dare.</h3>
           <p className="upload-subtitle">or, if you must, click to browse</p>
           
           <label htmlFor="file-upload">
@@ -138,7 +142,7 @@ export default function BusinessCardPage() {
         <div className="modal-overlay">
           <div className="modal-content">
             <img 
-              src="/bateman-eyes.jpg" 
+              src={batemanEyes} 
               alt="Analyzing" 
               className="bateman-image"
             />
