@@ -4,14 +4,14 @@ import './HomePage.css';
 import batemanEyes from '../assets/bateman-eyes.jpg';
 
 // TODO: replace with real input
-const analysisData = { 
-  psycho_score: 9, 
-  cardImage: '', 
-  typography: {}, 
+const analysisData = {
+  psycho_score: 9,
+  cardImage: '',
+  typography: {},
   color_scheme: {},
-  design_elements: {}, 
-  patrick_critique: "Perfect card." 
-} 
+  design_elements: {},
+  patrick_critique: "Perfect card."
+}
 
 export default function HomePage() {
   const [dragActive, setDragActive] = useState(false);
@@ -33,7 +33,7 @@ export default function HomePage() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setSelectedFile(e.dataTransfer.files[0]);
     }
@@ -68,25 +68,26 @@ export default function HomePage() {
       }
 
       const data = await response.json();
-      console.log('Backend response:', data); 
+      console.log('Backend response:', data);
 
       // wait 3 seconds for the dramatic effect, then navigate
       setTimeout(() => {
         setIsAnalyzing(false);
-        
+
         // navigate to results page with the analysis data from backend
         navigate('/results', {
           state: {
             analysisData: {
               cardImage: data.cardImage || URL.createObjectURL(selectedFile),
-              psycho_score: data.psycho_score,
-              card_quality: data.card_quality,
-              design_elements: data.design_elements,
-              typography: data.typography,
-              color_scheme: data.color_scheme,
-              layout_quality: data.layout_quality,
-              material_impression: data.material_impression,
-              patrick_critique: data.patrick_critique
+              psycho_score: data.psycho_score || 0,
+              card_quality: data.card_quality || 'Not analyzed',
+              design_elements: data.design_elements || {},
+              typography: data.typography || {},
+              color_scheme: data.color_scheme || {},
+              layout_quality: data.layout_quality || 'Not analyzed',
+              material_impression: data.material_impression || 'Not analyzed',
+              patrick_critique: data.patrick_critique || 'Analysis not available',
+              audio_url: data.audio_url || null
             }
           }
         });
@@ -111,7 +112,7 @@ export default function HomePage() {
             <h1 className="logo-text">PIERCE & PIERCE</h1>
           </div>
           <nav className="nav">
-            <a href="#" className="nav-link" onClick={()=> navigate('/leaderboard')}>LEADERBOARD</a>
+            <a href="#" className="nav-link" onClick={() => navigate('/leaderboard')}>LEADERBOARD</a>
             <button className="user-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -127,8 +128,8 @@ export default function HomePage() {
         <div className="title-section">
           <h2 className="main-title">Business Card Analysis</h2>
           <p className="subtitle">
-            Is it the subtle off-white coloring? The tasteful thickness? Or perhaps... the watermark? Let's stop guessing. 
-            Use this Analyzer to determine your card's true, unassailable superiority. 
+            Is it the subtle off-white coloring? The tasteful thickness? Or perhaps... the watermark? Let's stop guessing.
+            Use this Analyzer to determine your card's true, unassailable superiority.
           </p>
         </div>
 
@@ -145,7 +146,7 @@ export default function HomePage() {
           </svg>
           <h3 className="upload-title">Drag & Drop Your Card Here...If You Dare.</h3>
           <p className="upload-subtitle">or, if you must, click to browse</p>
-          
+
           <label htmlFor="file-upload">
             <input
               id="file-upload"
@@ -156,7 +157,7 @@ export default function HomePage() {
             />
             <span className="select-file-btn">SELECT FILE</span>
           </label>
-          
+
           {selectedFile && (
             <p className="selected-file">
               Selected: <strong>{selectedFile.name}</strong>
@@ -192,9 +193,9 @@ export default function HomePage() {
       {isAnalyzing && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <img 
-              src={batemanEyes} 
-              alt="Analyzing" 
+            <img
+              src={batemanEyes}
+              alt="Analyzing"
               className="bateman-image"
             />
             <p className="analyzing-text">ANALYZING NOW...</p>

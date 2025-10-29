@@ -1,10 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from http import HTTPStatus
 import os
+from PIL import Image
+import io
+import base64
+
+# Import your existing routers and services
 from routers import analyze, audio
 from config.settings import settings
+from services.gemini_service import gemini_service  # YOUR GEMINI SERVICE
 
 # Create FastAPI app with American Psycho themed metadata
 app = FastAPI(
@@ -31,7 +38,7 @@ async def startup_event():
 # Configure CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["http://localhost:3000", "http://localhost"],  # Your React app
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,10 +61,16 @@ app.mount("/images", StaticFiles(directory=settings.IMAGE_UPLOAD_PATH), name="im
 
 @app.get("/", response_class=HTMLResponse)
 def root():
-    """
-    Patrick Bateman themed welcome message
-    """
-    html_content = """<!DOCTYPE html>"""
+    """Patrick Bateman themed welcome message"""
+    html_content = """<!DOCTYPE html>
+    <html>
+    <head><title>Psycho Score API</title></head>
+    <body>
+        <h1>🎭 Psycho Score API</h1>
+        <p>Patrick Bateman's Business Card Analysis Service</p>
+        <a href="/docs">API Documentation</a>
+    </body>
+    </html>"""
     return HTMLResponse(content=html_content)
 
 
@@ -77,6 +90,68 @@ async def health_check():
             "docs": "/docs",
         },
     }
+
+
+# DIRECT ENDPOINT WITH REAL GEMINI INTEGRATION
+@app.post("/api/analyze/psycho-score")
+async def quick_analysis_endpoint(file: UploadFile = File(...)):
+    """
+    Quick business card analysis using Gemini AI
+    Accept image file, analyze with Gemini, return Patrick's critique with audio
+    """
+    try:
+        # Read the uploaded file
+        content = await file.read()
+
+        # Validate it's an image
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=400, detail="Only image files are supported"
+            )
+
+        # Open image for base64 encoding
+        image = Image.open(io.BytesIO(content))
+
+        # Convert image to base64 for returning to frontend
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+        # Reset file pointer for Gemini service
+        file.file = io.BytesIO(content)
+
+        # CALL YOUR ACTUAL GEMINI SERVICE
+        analysis = await gemini_service.analyze_business_card(file)
+
+        # Clean up the Patrick critique text for more natural speech
+        critique_text = analysis.patrick_critique
+        # Remove any potential JSON artifacts or formatting
+        critique_text = critique_text.replace('"', "").replace("\\n", " ").strip()
+
+        # Generate audio from Patrick's critique using ElevenLabs
+        from services.elevenlabs_service import elevenlabs_service
+
+        audio_response = await elevenlabs_service.generate_audio(
+            text=critique_text,
+            voice_id=None,  # Use default Patrick voice
+        )
+
+        # Convert Pydantic model to dict and add the card image and audio
+        analysis_dict = analysis.dict()
+        analysis_dict["cardImage"] = f"data:image/jpeg;base64,{img_base64}"
+        analysis_dict["audio_url"] = audio_response.audio_url
+
+        # Return JSONResponse with explicit status code
+        return JSONResponse(
+            content=analysis_dict,
+            status_code=HTTPStatus.OK,  # 200
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error processing image: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @app.get("/api")

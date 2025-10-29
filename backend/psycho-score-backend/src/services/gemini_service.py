@@ -70,12 +70,12 @@ class GeminiService:
             },
             "layout_quality": "Layout assessment",
             "material_impression": "Material quality perception",
-            "patrick_critique": "Your full Patrick Bateman critique in his voice (2-3 paragraphs)",
+            "patrick_critique": "Your full Patrick Bateman critique in his natural speaking voice, as if he's talking directly to someone. Write this as natural dialogue - conversational, dramatic, and unhinged. Avoid bullet points, lists, or overly structured text. Make it sound like Patrick is actually speaking. 2-3 sentences maximum for better audio flow.",
             "psycho_score": 7.5
         }
 
         The psycho_score should be 0-10, where 10 is impossible perfection by Patrick's standards.
-        DO NOT FORMAT YOUR RESPONSE, ONLY GENERATE PLAIN TEXT without bold or markdown.
+        IMPORTANT: For the patrick_critique field, write ONLY natural speech - no formatting, no bullet points, no special characters. Write as if Patrick is speaking directly to someone about the card DO NOT ADD ANY MARKDOWN OR FORMATTING SUCH AS BOLD TEXT.
         """
 
     async def analyze_business_card(self, image: UploadFile) -> BusinessCardAnalysis:
@@ -220,6 +220,8 @@ class GeminiService:
             "winner_reasoning": "Slight edge in overall composition and sophistication",
             "final_verdict": "BETA",
         }
+
+    def _create_fallback_analysis(self, raw_response: str) -> BusinessCardAnalysis:
         """Create a fallback analysis if JSON parsing fails"""
         return BusinessCardAnalysis(
             card_quality="Analysis completed with standard processing",
