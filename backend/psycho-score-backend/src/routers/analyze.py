@@ -24,9 +24,10 @@ async def psycho_score_analysis(file: UploadFile = File(...)):
         # Step 2: Send to Gemini for analysis (shape, color, font, details)
         analysis = await gemini_service.analyze_business_card(file)
 
-        # Step 3: Take Patrick's description and send to ElevenLabs
+        # Step 3: Take Patrick's description and send to ElevenLabs with your custom voice
         audio_response = await elevenlabs_service.generate_audio(
-            text=analysis.patrick_critique
+            text=analysis.patrick_critique,
+            voice_id=None,  # This will use your custom voice from settings
         )
 
         # Step 4: Return complete result to user

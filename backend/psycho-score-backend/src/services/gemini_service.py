@@ -75,6 +75,7 @@ class GeminiService:
         }
 
         The psycho_score should be 0-10, where 10 is impossible perfection by Patrick's standards.
+        DO NOT FORMAT YOUR RESPONSE, ONLY GENERATE PLAIN TEXT without bold or markdown.
         """
 
     async def analyze_business_card(self, image: UploadFile) -> BusinessCardAnalysis:
