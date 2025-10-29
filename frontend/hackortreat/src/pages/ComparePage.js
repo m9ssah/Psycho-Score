@@ -6,10 +6,16 @@ export default function ComparePage() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Get the first card data from previous page (if coming from results)
-  const [card1] = useState(location.state?.cardData || null);
+  const card1 = location.state?.cardData;
   const [card2, setCard2] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // If no card1, redirect back
+  React.useEffect(() => {
+    if (!card1) {
+      navigate('/');
+    }
+  }, [card1, navigate]);
 
   const handleCard2Upload = async (file) => {
     if (!file) return;
@@ -31,6 +37,7 @@ export default function ComparePage() {
 
       const data = await response.json();
       
+      // Store the FULL analysis data for card2
       setCard2({
         cardImage: data.cardImage || URL.createObjectURL(file),
         psycho_score: data.psycho_score,
@@ -62,21 +69,45 @@ export default function ComparePage() {
   };
 
   const handleInitiateComparison = () => {
-    if (card1 && card2) {
-      // Navigate to detailed comparison results page
-      navigate('/comparison-results', {
-        state: { card1, card2 }
+    if (!card1 || !card2) return;
+
+    // Compare the psycho_scores
+    const card1Score = card1.psycho_score;
+    const card2Score = card2.psycho_score;
+
+    if (card1Score > card2Score) {
+      // Card 1 wins - YOU ARE ALPHA
+      navigate('/alpha', {
+        state: {
+          yourCard: card1,
+          opponentCard: card2,
+          winner: 'you'
+        }
+      });
+    } else if (card1Score < card2Score) {
+      // Card 2 wins - YOU ARE BETA
+      navigate('/beta', {
+        state: {
+          yourCard: card1,
+          opponentCard: card2,
+          winner: 'opponent'
+        }
+      });
+    } else {
+      // Tie - you can create a TiePage or just go to Alpha
+      navigate('/alpha', {
+        state: {
+          yourCard: card1,
+          opponentCard: card2,
+          winner: 'tie'
+        }
       });
     }
   };
 
-  // Mock data for demonstration (remove when you have real card1 data)
-  const displayCard1 = card1 || {
-    cardImage: '/placeholder-card.jpg',
-    psycho_score: 9.2,
-    card_quality: "Impressive. Very nice.",
-    patrick_critique: "The tasteful thickness of it. The subtle off-white coloring. A watermark is present, though barely perceptible. The choice of Silian Rail for the typeface demonstrates a refined, yet understated confidence."
-  };
+  if (!card1) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="comparison-container">
@@ -85,21 +116,21 @@ export default function ComparePage() {
         <div className="comparison-header">
           <h1 className="comparison-title">Comparative Analysis</h1>
           <p className="comparison-subtitle">
-            Who is the Alpha? Who is the Beta? Let's put it to the test...
+            A side-by-side evaluation of aesthetic and material superiority. Let's see who's the alpha.
           </p>
         </div>
 
         {/* Two Column Comparison */}
         <div className="comparison-grid">
-          {/* Left Side - The Challenger */}
+          {/* Left Side - Your Card (The Challenger) */}
           <div className="card-column">
-            <h2 className="card-column-title">The Challenger</h2>
+            <h2 className="card-column-title">Your Card</h2>
             
             <div className="card-display-box">
-              {displayCard1.cardImage ? (
+              {card1.cardImage ? (
                 <img 
-                  src={displayCard1.cardImage} 
-                  alt="Challenger Card" 
+                  src={card1.cardImage} 
+                  alt="Your Card" 
                   className="comparison-card-image"
                 />
               ) : (
@@ -112,13 +143,16 @@ export default function ComparePage() {
             <div className="evaluation-section">
               <div className="evaluation-header">
                 <span className="evaluation-label">EVALUATION</span>
-                <span className="evaluation-score">{displayCard1.psycho_score}<span className="score-max">/10</span></span>
+                <span className="evaluation-score">
+                  {card1.psycho_score}
+                  <span className="score-max">/10</span>
+                </span>
               </div>
               
-              <h3 className="evaluation-verdict">{displayCard1.card_quality}</h3>
+              <h3 className="evaluation-verdict">{card1.card_quality}</h3>
               
               <p className="evaluation-text">
-                {displayCard1.patrick_critique}
+                {card1.patrick_critique.substring(0, 150)}...
               </p>
             </div>
 
@@ -154,17 +188,20 @@ export default function ComparePage() {
                 <div className="evaluation-section">
                   <div className="evaluation-header">
                     <span className="evaluation-label">EVALUATION</span>
-                    <span className="evaluation-score">{card2.score}<span className="score-max">/10</span></span>
+                    <span className="evaluation-score">
+                      {card2.psycho_score}
+                      <span className="score-max">/10</span>
+                    </span>
                   </div>
                   
                   <h3 className="evaluation-verdict">
-                    {card2.score > displayCard1.score ? "Superior craftsmanship." : 
-                     card2.score === displayCard1.score ? "Equally matched." : 
+                    {card2.psycho_score > card1.psycho_score ? "Superior craftsmanship." : 
+                     card2.psycho_score === card1.psycho_score ? "Equally matched." : 
                      "Falls short."}
                   </h3>
                   
                   <p className="evaluation-text">
-                    {card2.finalImpression}
+                    {card2.patrick_critique.substring(0, 150)}...
                   </p>
                 </div>
 

@@ -1,0 +1,512 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .alpha-container {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  
+  /* Animated Background */
+  .alpha-bg-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+  }
+  
+  .alpha-grain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+  }
+  
+  /* Main Content */
+  .alpha-content {
+    max-width: 900px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .alpha-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Trophy Section */
+  .alpha-trophy-section {
+    position: relative;
+    margin-bottom: 40px;
+    animation: floatTrophy 3s ease-in-out infinite;
+  }
+  
+  @keyframes floatTrophy {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .trophy-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 70%);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+  }
+  
+  .trophy-icon {
+    font-size: 120px;
+    filter: drop-shadow(0 10px 30px rgba(212, 175, 55, 0.6));
+    animation: rotateTrophy 4s ease-in-out infinite;
+  }
+  
+  @keyframes rotateTrophy {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+  
+  .trophy-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shine 3s ease-in-out infinite;
+  }
+  
+  @keyframes shine {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
+  }
+  
+  /* Title */
+  .alpha-title {
+    margin-bottom: 50px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+  
+  .alpha-word {
+    display: block;
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: 12px;
+    color: #f5f5f0;
+    text-shadow: 
+      0 0 20px rgba(212, 175, 55, 0.5),
+      0 0 40px rgba(212, 175, 55, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.8);
+    margin: -10px 0;
+    animation: fadeInUp 0.8s ease-out backwards;
+  }
+  
+  .alpha-word:nth-child(1) { animation-delay: 0.3s; }
+  .alpha-word:nth-child(2) { animation-delay: 0.5s; }
+  .alpha-word:nth-child(3) { animation-delay: 0.7s; }
+  
+  .alpha-word-main {
+    font-size: 96px;
+    background: linear-gradient(135deg, #d4af37 0%, #f4e5b1 50%, #d4af37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 20px;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+  }
+  
+  /* Score Display */
+  .alpha-score-display {
+    margin: 40px 0;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+    animation: fadeIn 1s ease-out 1s backwards;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .score-label {
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #c9b896;
+    margin-bottom: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  .score-massive {
+    font-size: 120px;
+    font-weight: 700;
+    color: #d4af37;
+    line-height: 1;
+    text-shadow: 
+      0 0 30px rgba(212, 175, 55, 0.8),
+      0 0 60px rgba(212, 175, 55, 0.4);
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+  
+  .score-divider {
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    margin: 20px auto;
+  }
+  
+  .score-perfect {
+    font-size: 18px;
+    letter-spacing: 6px;
+    color: #f5f5f0;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  /* Quote Section */
+  .alpha-quote-section {
+    margin: 60px 0;
+    position: relative;
+    animation: fadeIn 1s ease-out 1.2s backwards;
+  }
+  
+  .quote-marks {
+    font-size: 80px;
+    color: #d4af37;
+    opacity: 0.3;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 0;
+  }
+  
+  .alpha-quote {
+    font-size: 24px;
+    font-style: italic;
+    color: #e5e5dc;
+    line-height: 1.6;
+    margin: 20px 0;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Achievement Badges */
+  .achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 60px 0;
+    animation: fadeIn 1s ease-out 1.4s backwards;
+  }
+  
+  .achievement-badge {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 8px;
+    padding: 30px 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .achievement-badge:hover {
+    transform: translateY(-5px);
+    border-color: #d4af37;
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+  }
+  
+  .badge-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 4px 8px rgba(212, 175, 55, 0.4));
+  }
+  
+  .badge-text {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #c9b896;
+    line-height: 1.4;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  /* Verdict Section */
+  .alpha-verdict {
+    margin: 60px auto;
+    max-width: 700px;
+    padding: 40px;
+    position: relative;
+    animation: fadeIn 1s ease-out 1.6s backwards;
+  }
+  
+  .verdict-border-top,
+  .verdict-border-bottom {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    margin: 25px 0;
+  }
+  
+  .verdict-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #e5e5dc;
+    font-style: italic;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    margin-bottom: 20px;
+  }
+  
+  .verdict-signature {
+    font-size: 14px;
+    color: #c9b896;
+    letter-spacing: 2px;
+    text-align: right;
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+  
+  /* Stats Row */
+  .alpha-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    margin: 60px 0;
+    animation: fadeIn 1s ease-out 1.8s backwards;
+  }
+  
+  .stat-item {
+    text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #d4af37;
+    margin-bottom: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #c9b896;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  .stat-divider {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(180deg, transparent, #d4af37, transparent);
+  }
+  
+  /* Action Buttons */
+  .alpha-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 60px 0 40px;
+    animation: fadeIn 1s ease-out 2s backwards;
+  }
+  
+  .alpha-btn {
+    padding: 18px 50px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  .alpha-btn.primary {
+    background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+    color: #1a1a1a;
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
+  }
+  
+  .alpha-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(212, 175, 55, 0.6);
+  }
+  
+  .alpha-btn.secondary {
+    background: transparent;
+    color: #d4af37;
+    border: 2px solid #d4af37;
+  }
+  
+  .alpha-btn.secondary:hover {
+    background: rgba(212, 175, 55, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: btnShine 3s ease-in-out infinite;
+  }
+  
+  @keyframes btnShine {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
+  }
+  
+  /* Bottom Text */
+  .alpha-bottom-text {
+    margin-top: 40px;
+    animation: fadeIn 1s ease-out 2.2s backwards;
+  }
+  
+  .alpha-bottom-text p {
+    font-size: 13px;
+    color: #8b7355;
+    font-style: italic;
+    letter-spacing: 1px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+  
+  /* Particles */
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #d4af37;
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleFloat linear infinite;
+  }
+  
+  @keyframes particleFloat {
+    0% {
+      transform: translateY(100vh) scale(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100px) scale(1);
+      opacity: 0;
+    }
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .alpha-word {
+      font-size: 48px;
+      letter-spacing: 8px;
+    }
+  
+    .alpha-word-main {
+      font-size: 64px;
+      letter-spacing: 12px;
+    }
+  
+    .trophy-icon {
+      font-size: 80px;
+    }
+  
+    .score-massive {
+      font-size: 80px;
+    }
+  
+    .alpha-quote {
+      font-size: 18px;
+    }
+  
+    .achievement-grid {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+  
+    .alpha-stats {
+      flex-direction: column;
+      gap: 30px;
+    }
+  
+    .stat-divider {
+      width: 60px;
+      height: 1px;
+    }
+  
+    .alpha-actions {
+      flex-direction: column;
+      width: 100%;
+      padding: 0 20px;
+    }
+  
+    .alpha-btn {
+      width: 100%;
+    }
+  
+    .alpha-verdict {
+      padding: 20px;
+    }
+  }

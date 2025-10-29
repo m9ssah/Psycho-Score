@@ -52,6 +52,15 @@ export default function ResultsPage() {
         }
     };
 
+    const handleCompareAnother = () => {
+      // Pass the FULL analysis data to compare page
+      navigate('/compare', {
+        state: {
+          cardData: analysisData // This includes all the fields from backend
+        }
+      });
+    };
+
     if (loading) {
         return (
           <div className="results-container">
@@ -166,7 +175,7 @@ export default function ResultsPage() {
                 </button>
                 <button 
                   className="btn-secondary"
-                  onClick={() => {navigate("/compare")}}
+                  onClick={handleCompareAnother}
                 >
                   COMPARE CARD
                 </button>

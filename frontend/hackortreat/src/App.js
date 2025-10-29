@@ -5,6 +5,8 @@ import HomePage from './pages/HomePage';
 import ResultsPage from './pages/ResultsPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ComparePage from './pages/ComparePage';
+import AlphaPage from './pages/AlphaPage';
+import BetaPage from './pages/BetaPage'; 
 import './App.css';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/compare" element={<ComparePage />} />
+        <Route path="/alpha" element={<AlphaPage />} />
+        <Route path="/beta" element={<BetaPage />} />
       </Routes>
     </Router>
   );
