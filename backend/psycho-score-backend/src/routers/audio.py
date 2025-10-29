@@ -3,17 +3,12 @@ from fastapi.responses import FileResponse
 from typing import Optional
 import os
 from services.elevenlabs_service import elevenlabs_service
-from models.schemas import TTSRequest, TTSResponse, AudioResponse, ErrorResponse
 from config.settings import settings
 
 router = APIRouter()
 
 
-@router.post(
-    "/generate",
-    response_model=AudioResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
+@router.post("/generate")
 async def generate_audio_from_text(
     text: str = Form(..., description="Text to convert to speech"),
     voice_id: Optional[str] = Form(
@@ -41,16 +36,12 @@ async def generate_audio_from_text(
         raise HTTPException(status_code=500, detail=f"Error generating audio: {str(e)}")
 
 
-@router.post(
-    "/patrick-critique",
-    response_model=AudioResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
-async def generate_patrick_audio(request: TTSRequest):
+@router.post("/patrick-critique")
+async def generate_patrick_audio(text: str = Form(...)):
     """Generate Patrick Bateman style audio critique"""
     try:
         # Add Patrick Bateman style flair if not already present
-        enhanced_text = request.text
+        enhanced_text = text
         if not any(
             phrase in enhanced_text.lower()
             for phrase in ["look at that", "subtle", "tasteful", "elegant"]
