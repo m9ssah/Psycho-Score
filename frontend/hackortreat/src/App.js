@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ResultsPage from './pages/ResultsPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import ComparePage from './pages/ComparePage';
 import './App.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/compare" element={<ComparePage />} />
       </Routes>
     </Router>
   );

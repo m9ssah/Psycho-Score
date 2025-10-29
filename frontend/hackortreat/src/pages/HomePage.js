@@ -3,6 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 import batemanEyes from '../assets/bateman-eyes.jpg';
 
+// TODO: replace with real input
+const analysisData = { 
+  psycho_score: 4.5, 
+  cardImage: '', 
+  typography: {}, 
+  color_scheme: {},
+  design_elements: {}, 
+  patrick_critique: "Perfect card." 
+} 
+
 export default function HomePage() {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -38,10 +48,9 @@ export default function HomePage() {
   const handleAnalyze = () => {
     if (selectedFile) {
       setIsAnalyzing(true);
-      // Show analyzing modal for 3 seconds, then navigate to results
       setTimeout(() => {
         setIsAnalyzing(false);
-        navigate('/results');
+        navigate('/results', { state: { analysisData } });
       }, 3000);
     }
   };
@@ -58,9 +67,7 @@ export default function HomePage() {
             <h1 className="logo-text">PIERCE & PIERCE</h1>
           </div>
           <nav className="nav">
-            <a href="#" className="nav-link">HOME</a>
-            <a href="#" className="nav-link">HISTORY</a>
-            <a href="#" className="nav-link">CONTACT</a>
+            <a href="#" className="nav-link" onClick={()=> navigate('/leaderboard')}>LEADERBOARD</a>
             <button className="user-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
